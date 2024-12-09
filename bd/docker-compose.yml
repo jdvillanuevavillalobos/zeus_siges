@@ -1,0 +1,67 @@
+services:
+  primary:
+    image: postgres:15
+    container_name: postgres_primary
+    user: ${SYSTEM_USER}  # Asegura que PostgreSQL no se ejecute como root
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "${PRIMARY_PORT}:5432"
+    volumes:
+      - primary_data:/var/lib/postgresql/data
+      - ./primary/postgresql.conf:/etc/postgresql/postgresql.conf
+      - ./primary/pg_hba.conf:/etc/postgresql/pg_hba.conf
+      - ./primary/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./primary/setup_primary.sh:/docker-entrypoint-initdb.d/setup_primary.sh
+    command:
+      bash -c "/docker-entrypoint-initdb.d/setup_primary.sh && postgres -c config_file=/etc/postgresql/postgresql.conf"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - zeus_siges_network
+      - zeus_siges_network_monitoring  # Conexión al sistema de monitoreo
+
+  replica:
+    image: postgres:15
+    container_name: postgres_replica
+    user: ${SYSTEM_USER}  # Asegura que PostgreSQL no se ejecute como root
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    depends_on:
+      primary:
+        condition: service_healthy
+    ports:
+      - "${REPLICA_PORT}:5432"
+    volumes:
+      - replica_data:/var/lib/postgresql/data
+      - ./replica/postgresql.conf:/etc/postgresql/postgresql.conf
+      - ./replica/pg_hba.conf:/etc/postgresql/pg_hba.conf
+      - ./replica/setup_replica.sh:/docker-entrypoint-initdb.d/setup_replica.sh
+    command:
+      bash -c "/docker-entrypoint-initdb.d/setup_replica.sh && postgres"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - zeus_siges_network
+      - zeus_siges_network_monitoring  # Conexión al sistema de monitoreo
+
+volumes:
+  primary_data:
+  replica_data:
+
+networks:
+  zeus_siges_network:
+    name: zeus_siges_network  # Red principal
+    driver: bridge
+  zeus_siges_network_monitoring:
+    name: zeus_siges_network_monitoring  # Red para monitoreo
+    driver: bridge
