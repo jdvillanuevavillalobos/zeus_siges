@@ -16,24 +16,33 @@ MAX_REPLICATION_SLOTS=${MAX_REPLICATION_SLOTS:-5}
 SYNCHRONOUS_STANDBY_NAMES=${SYNCHRONOUS_STANDBY_NAMES:-''}
 SYSTEM_USER=${SYSTEM_USER:-postgres}
 INIT_SQL_FILE="/docker-entrypoint-initdb.d/init.sql"
+PGDATA="/var/lib/postgresql/data"
+PG_HBA_SOURCE="/etc/postgresql/pg_hba.conf"
 
 # Asegurar que el directorio de datos esté inicializado
-if [ ! -f /var/lib/postgresql/data/PG_VERSION ]; then
+if [ ! -f ${PGDATA}/PG_VERSION ]; then
   echo "Directorio de datos vacío. Inicializando con initdb..."
-  initdb -D /var/lib/postgresql/data
+  initdb -D ${PGDATA}
   echo "Directorio de datos inicializado."
+
+  # Copiar archivo pg_hba.conf personalizado después de initdb
+  echo "Copiando pg_hba.conf personalizado..."
+  cp ${PG_HBA_SOURCE} ${PGDATA}/pg_hba.conf
 else
   echo "El directorio de datos ya está inicializado."
+
+  # Sobrescribir archivo pg_hba.conf en reinicios
+  echo "Sobrescribiendo pg_hba.conf con configuración personalizada..."
+  cp ${PG_HBA_SOURCE} ${PGDATA}/pg_hba.conf
 fi
 
-# Ajustar permisos del directorio de datos
-echo "Ajustando permisos del directorio de datos..."
-chown -R "${SYSTEM_USER}:${SYSTEM_USER}" /var/lib/postgresql/data
-chmod 700 /var/lib/postgresql/data
+# Ajustar permisos del archivo pg_hba.conf
+chown postgres:postgres ${PGDATA}/pg_hba.conf
+chmod 600 ${PGDATA}/pg_hba.conf
 
 # Configurar PostgreSQL para la replicación
 echo "Configurando PostgreSQL para la replicación..."
-cat > /var/lib/postgresql/data/postgresql.auto.conf <<EOF
+cat > ${PGDATA}/postgresql.auto.conf <<EOF
 wal_level = replica
 max_wal_senders = ${MAX_WAL_SENDERS}
 wal_keep_size = ${WAL_KEEP_SIZE}
@@ -43,13 +52,13 @@ EOF
 
 # Iniciar PostgreSQL temporalmente para configuraciones avanzadas
 echo "Iniciando PostgreSQL temporalmente para configuraciones avanzadas..."
-pg_ctl -D /var/lib/postgresql/data -l /var/lib/postgresql/data/postgresql.log start
+pg_ctl -D ${PGDATA} -l ${PGDATA}/postgresql.log start
 
-# Crear el usuario si no existe
+# Crear el usuario si no existe y garantizar roles necesarios
 echo "Validando la existencia del usuario '${DB_USER}'..."
 psql -U postgres -tc "SELECT 1 FROM pg_roles WHERE rolname = '${DB_USER}';" | grep -q 1 || {
   echo "Creando el usuario '${DB_USER}'..."
-  psql -U postgres -c "CREATE ROLE ${DB_USER} LOGIN PASSWORD '${DB_PASSWORD}'; ALTER ROLE ${DB_USER} CREATEDB; ALTER ROLE ${DB_USER} REPLICATION;"
+  psql -U postgres -c "CREATE ROLE ${DB_USER} LOGIN PASSWORD '${DB_PASSWORD}' SUPERUSER CREATEDB REPLICATION;"
 }
 echo "Usuario '${DB_USER}' configurado."
 
@@ -64,7 +73,7 @@ echo "Base de datos '${DB_NAME}' configurada."
 # Ejecutar init.sql si existe
 if [ -f "${INIT_SQL_FILE}" ]; then
   echo "Ejecutando el script de inicialización (${INIT_SQL_FILE})..."
-  psql -U ${DB_USER} -d ${DB_NAME} -f "${INIT_SQL_FILE}" && echo "init.sql ejecutado correctamente." || \
+  psql -U ${DB_USER} -d ${DB_NAME} -f "${INIT_SQL_FILE}" || \
     echo "Advertencia: No se pudo ejecutar init.sql. Verifique su contenido."
 else
   echo "El archivo ${INIT_SQL_FILE} no existe. Saltando ejecución de init.sql."
@@ -78,6 +87,6 @@ psql -U postgres -c "SELECT * FROM pg_create_physical_replication_slot('${REPLIC
 
 # Detener PostgreSQL después de configurarlo
 echo "Deteniendo PostgreSQL después de la configuración inicial..."
-pg_ctl -D /var/lib/postgresql/data stop
+pg_ctl -D ${PGDATA} stop
 
 echo "Nodo principal configurado correctamente."
