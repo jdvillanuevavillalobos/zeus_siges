@@ -100,6 +100,11 @@ docker exec -it postgres_primary psql -U admin -c "SELECT * FROM pg_stat_replica
 
 <h2>Comandos Útiles</h2>
 <ul>
+  <li>Ver el estado del docker compose:
+    <pre>
+docker-compose ps
+    </pre>
+  </li>
   <li>Detener y limpiar el entorno:
     <pre>
 docker-compose down -v

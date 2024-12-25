@@ -1,6 +1,10 @@
 -- Crear esquema de prueba
 CREATE SCHEMA IF NOT EXISTS replica_prueba;
 
+CREATE SCHEMA IF NOT EXISTS seguridad;
+
+CREATE SCHEMA IF NOT EXISTS configuracion;
+
 -- Crear tabla de ejemplo
 CREATE TABLE IF NOT EXISTS replica_prueba.replica (
     id SERIAL PRIMARY KEY,
