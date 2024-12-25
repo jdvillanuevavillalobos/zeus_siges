@@ -22,6 +22,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: always
     networks:
       - zeus_siges_network
       - zeus_siges_network_monitoring  # Conexión al sistema de monitoreo
@@ -51,6 +52,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: always
     networks:
       - zeus_siges_network
       - zeus_siges_network_monitoring  # Conexión al sistema de monitoreo
