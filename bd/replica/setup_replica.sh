@@ -14,6 +14,13 @@ SYSTEM_USER=${SYSTEM_USER:-postgres}
 PGDATA="/var/lib/postgresql/data"
 PG_HBA_SOURCE="/etc/postgresql/pg_hba.conf"
 
+# Verificar si el nodo réplica ya está configurado
+if [ -f "$PGDATA/standby.signal" ]; then
+  echo "El nodo réplica ya está configurado. Iniciando PostgreSQL en modo réplica..."
+  exec postgres -c config_file=/etc/postgresql/postgresql.conf
+  exit 0
+fi
+
 # Validar conexión con el nodo principal
 echo "Validando la conexión con el nodo principal ($PRIMARY_IP:$PRIMARY_PORT)..."
 until pg_isready -h "$PRIMARY_IP" -p "$PRIMARY_PORT" -U "$DB_USER" -d "$DB_NAME"; do
@@ -80,3 +87,4 @@ chown postgres:postgres "$PGDATA/standby.signal"
 echo "Modo réplica activado."
 
 echo "Réplica configurada correctamente."
+exec postgres -c config_file=/etc/postgresql/postgresql.conf
