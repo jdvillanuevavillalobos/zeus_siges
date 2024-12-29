@@ -1,0 +1,155 @@
+@import '../styles/variables.less'; // Usar variables globales para consistencia
+
+// Página principal
+.login-page {
+  display: flex;
+  height: 100vh;
+  background: @background-color;
+
+  @media (max-width: 768px) {
+    flex-direction: column; // Cambiar a diseño apilado en pantallas pequeñas
+    height: auto; // Ajustar altura dinámica
+  }
+}
+
+// Panel Izquierdo (Información)
+.login-left-panel {
+  flex: 1;
+  background: linear-gradient(135deg, #2B6777, #A8DEE0); // Fondo degradado suave
+  display: flex;
+  flex-direction: column; // Alinear en columna
+  justify-content: center;
+  align-items: center;
+  color: #ffffff;
+  padding: 40px;
+  text-align: center;
+
+  .logo {
+    width: 180px; // Tamaño del logo
+    margin-bottom: 20px; // Espaciado debajo del logo
+  }
+
+  .welcome-section {
+    max-width: 400px;
+
+    .welcome-title {
+      font-size: 36px;
+      font-weight: bold;
+      margin-bottom: 15px;
+      color: #FFFFFF;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); // Sombra ligera para mejorar la visibilidad
+    }
+
+    .welcome-description {
+      font-size: 16px;
+      line-height: 1.5;
+      color: #E0F7FA; // Gris claro para buen contraste
+    }
+  }
+
+  @media (max-width: 768px) {
+    padding: 20px;
+    .logo {
+      width: 120px; // Reducir tamaño del logo
+      margin-bottom: 10px; // Ajustar espaciado
+    }
+    .welcome-title {
+      font-size: 28px; // Reducir tamaño del título
+    }
+    .welcome-description {
+      font-size: 14px; // Reducir tamaño de la descripción
+    }
+  }
+}
+
+// Panel Derecho (Formulario)
+.login-right-panel {
+  flex: 1;
+  background: #ffffff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+
+  .login-form-container {
+    width: 100%;
+    max-width: 400px;
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); // Sombra suave para destacar el formulario
+
+    .form-title {
+      color: @primary-color;
+      font-weight: bold;
+      margin-bottom: 20px;
+      font-size: 24px;
+    }
+
+    .login-form {
+      text-align: left;
+
+      .form-options {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+
+        .forgot-password {
+          font-size: 12px;
+          color: @primary-color;
+
+          &:hover {
+            text-decoration: underline;
+          }
+        }
+      }
+
+      .login-button {
+        width: 100%;
+        background-color: @primary-color;
+        border-color: @primary-color;
+        color: #ffffff;
+        font-weight: bold;
+        border-radius: 6px; // Bordes suaves
+        transition: all 0.3s ease;
+
+        &:hover {
+          background-color: lighten(@primary-color, 10%);
+        }
+
+        &:active {
+          background-color: darken(@primary-color, 5%);
+        }
+      }
+
+      .signup-text {
+        margin-top: 15px;
+        font-size: 12px;
+        color: @text-secondary-color;
+
+        a {
+          color: @primary-color;
+
+          &:hover {
+            text-decoration: underline;
+          }
+        }
+      }
+    }
+  }
+
+  @media (max-width: 768px) {
+    padding: 20px;
+
+    .login-form-container {
+      padding: 20px;
+      max-width: 100%; // Formulario ocupa todo el ancho
+      box-shadow: none; // Eliminar sombra para pantallas pequeñas
+    }
+
+    .form-title {
+      font-size: 20px; // Reducir tamaño del título
+    }
+  }
+}
