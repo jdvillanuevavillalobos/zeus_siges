@@ -1,0 +1,31 @@
+{
+  "presets": [
+    [
+      "@babel/preset-env",
+      {
+        "targets": {
+          "browsers": ["last 2 versions", "not dead", "> 0.2%"]
+        },
+        "modules": false,
+        "useBuiltIns": "usage",
+        "corejs": "3.29"
+      }
+    ],
+    "@babel/preset-react"
+  ],
+  "plugins": [
+    "@babel/plugin-transform-runtime",
+    "@babel/plugin-syntax-dynamic-import"
+  ],
+  "env": {
+    "development": {
+      "plugins": ["react-refresh/babel"]
+    },
+    "production": {
+      "plugins": [
+        "@babel/plugin-transform-react-inline-elements",
+        "@babel/plugin-transform-react-constant-elements"
+      ]
+    }
+  }
+}

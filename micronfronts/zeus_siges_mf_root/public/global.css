@@ -1,0 +1,42 @@
+/* Estilos globales con soporte para temas */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+[data-theme='light'] {
+  --background-color: white;
+  --text-color: black;
+}
+
+[data-theme='dark'] {
+  --background-color: black;
+  --text-color: white;
+}
+
+#layout {
+  display: flex;
+  flex: 1;
+}
+
+header {
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px;
+}
+
+nav {
+  width: 250px;
+  background-color: #f4f4f4;
+  padding: 10px;
+}
+
+main {
+  flex: 1;
+  padding: 20px;
+}
