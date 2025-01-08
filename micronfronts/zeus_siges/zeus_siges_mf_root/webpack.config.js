@@ -1,3 +1,5 @@
+require("ts-node").register();
+const ModuleFederationConfig = require("./src/infrastructure/configurations/ModuleFederationConfig");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const ModuleFederationPlugin =
   require("webpack").container.ModuleFederationPlugin;
@@ -34,10 +36,7 @@ module.exports = {
   plugins: [
     new ModuleFederationPlugin({
       name: "zeus_siges_mf_root",
-      remotes: {
-        zeus_siges_mf_header:
-          "zeus_siges_mf_header@http://localhost:3001/remoteEntry.js",
-      },
+      remotes: ModuleFederationConfig.remotes, // Usamos la configuración externa
       shared: {
         react: { singleton: true, requiredVersion: "^18.3.1" },
         "react-dom": { singleton: true, requiredVersion: "^18.3.1" },
