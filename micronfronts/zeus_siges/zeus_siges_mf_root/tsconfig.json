@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "ES6",
+    "module": "ESNext",
+    "jsx": "react",
+    "strict": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": "./",
+    "paths": {
+      "*": ["src/types/*"]
+    }
+  },
+  "include": ["src/**/*", "src/infrastructure/types/declares.d.ts"],
+  "exclude": ["node_modules", "dist"]
+}
