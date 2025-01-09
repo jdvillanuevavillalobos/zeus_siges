@@ -15,7 +15,7 @@ MAX_WAL_SENDERS=${MAX_WAL_SENDERS:-5}
 MAX_REPLICATION_SLOTS=${MAX_REPLICATION_SLOTS:-5}
 SYNCHRONOUS_STANDBY_NAMES=${SYNCHRONOUS_STANDBY_NAMES:-''}
 SYSTEM_USER=${SYSTEM_USER:-postgres}
-INIT_SQL_FILE="/docker-entrypoint-initdb.d/init.sql"
+SCRIPT_INIT_DIR="/docker-entrypoint-initdb.d/script_init"  # Directorio para scripts SQL
 PGDATA="/var/lib/postgresql/data"
 PG_HBA_SOURCE="/etc/postgresql/pg_hba.conf"
 
@@ -70,13 +70,21 @@ psql -U postgres -tc "SELECT 1 FROM pg_database WHERE datname = '${DB_NAME}';" |
 }
 echo "Base de datos '${DB_NAME}' configurada."
 
-# Ejecutar init.sql si existe
-if [ -f "${INIT_SQL_FILE}" ]; then
-  echo "Ejecutando el script de inicialización (${INIT_SQL_FILE})..."
-  psql -U ${DB_USER} -d ${DB_NAME} -f "${INIT_SQL_FILE}" || \
-    echo "Advertencia: No se pudo ejecutar init.sql. Verifique su contenido."
+# Ejecutar scripts en script_init si existen
+if [ -d "${SCRIPT_INIT_DIR}" ]; then
+  echo "Ejecutando scripts en ${SCRIPT_INIT_DIR}..."
+  for sql_file in ${SCRIPT_INIT_DIR}/*.sql; do
+    if [ -f "$sql_file" ]; then
+      echo "Ejecutando $sql_file..."
+      psql -U ${DB_USER} -d ${DB_NAME} -f "$sql_file" || {
+        echo "Error ejecutando $sql_file. Verifique su contenido."
+        exit 1
+      }
+      echo "$sql_file ejecutado correctamente."
+    fi
+  done
 else
-  echo "El archivo ${INIT_SQL_FILE} no existe. Saltando ejecución de init.sql."
+  echo "Directorio ${SCRIPT_INIT_DIR} no encontrado. Saltando ejecución de scripts SQL."
 fi
 
 # Crear el slot de replicación

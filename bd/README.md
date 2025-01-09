@@ -9,6 +9,7 @@ Este proyecto configura un entorno de replicación en PostgreSQL utilizando Dock
   <li>Replicación de datos entre nodos principal y réplica en PostgreSQL.</li>
   <li>Configuración modular y personalizable usando Docker Compose.</li>
   <li>Soporte para replicación síncrona o asíncrona.</li>
+  <li>Procesamiento automático de scripts SQL desde la carpeta <code>script_init</code>.</li>
 </ul>
 
 <h2>Requisitos Previos</h2>
@@ -19,9 +20,9 @@ Este proyecto configura un entorno de replicación en PostgreSQL utilizando Dock
       <li><a href="https://docs.docker.com/compose/install/">Docker Compose</a></li>
       <li>Configurar permisos en los scripts:
         <pre>
-chmod +x replica/setup_replica.sh
-chmod 644 primary/pg_hba.conf primary/postgresql.conf primary/init.sql
-chmod 644 replica/pg_hba.conf replica/postgresql.conf
+chmod +x replica/setup_replica.sh primary/setup_primary.sh
+chmod 644 primary/pg_hba.conf primary/postgresql.conf
+chmod -R 644 primary/script_init/*.sql
         </pre>
       </li>
     </ul>
@@ -42,7 +43,10 @@ chmod 644 replica/pg_hba.conf replica/postgresql.conf
 |   |-- postgresql.conf               # Configuración principal de PostgreSQL
 |   |-- pg_hba.conf                   # Configuración de acceso
 |   |-- setup_primary.sh              # Script para inicializar el nodo principal
-|   |-- init.sql                      # Datos iniciales para la base de datos
+|   |-- script_init/                  # Scripts SQL iniciales
+|       |-- 001_create_schema.sql     # Script para crear esquemas
+|       |-- 002_create_users_table.sql# Script para crear tabla de usuarios
+|       |-- 003_insert_default_data.sql # Script para datos iniciales
 |-- replica/                          # Configuración del nodo réplica
 |   |-- postgresql.conf               # Configuración principal de PostgreSQL
 |   |-- pg_hba.conf                   # Configuración de acceso
@@ -68,7 +72,7 @@ docker-compose up -d
 </pre>
 <p>Esto hará lo siguiente:</p>
 <ul>
-  <li>Configurar el nodo principal, crear la base de datos, esquemas y datos iniciales.</li>
+  <li>Configurar el nodo principal, crear la base de datos y procesar automáticamente los scripts SQL desde <code>script_init</code>.</li>
   <li>Configurar automáticamente el nodo réplica en modo standby.</li>
 </ul>
 
@@ -81,15 +85,13 @@ docker ps
 <h3>4. Validar la Replicación</h3>
 <p>Desde el nodo réplica, verifica que los datos se han replicado correctamente:</p>
 <pre>
-docker exec -it postgres_replica psql -U admin -d sigeszeus -c "SELECT * FROM replica_prueba.replica;"
+docker exec -it postgres_replica psql -U admin -d sigeszeus -c "SELECT * FROM seguridad.usuarios;"
 </pre>
 <p><strong>Resultado esperado:</strong></p>
 <pre>
- id | nombre  | apellido
-----+---------+---------
-  1 | Juan    | Pérez
-  2 | Ana     | López
-  3 | Carlos  | Gómez
+ id | nombre         | correo
+----+----------------+--------------------
+  1 | Usuario Admin  | admin@example.com
 </pre>
 
 <h3>5. Verificar el Estado de la Replicación</h3>
@@ -121,6 +123,20 @@ docker exec -it postgres_primary psql -U postgres -c "SELECT rolname FROM pg_rol
 docker exec -it postgres_primary psql -U postgres -c "SELECT datname FROM pg_database;"
     </pre>
   </li>
+  <li>Ver los logs de los contenedores:
+    <ul>
+      <li>Logs del nodo principal:
+        <pre>
+docker-compose logs -f primary
+        </pre>
+      </li>
+      <li>Logs del nodo réplica:
+        <pre>
+docker-compose logs -f replica
+        </pre>
+      </li>
+    </ul>
+  </li>
   <li>Inspeccionar redes de Docker:
     <pre>
 docker network ls
@@ -130,8 +146,8 @@ docker network ls
 
 <h2>Personalización</h2>
 
-<h3>Datos Iniciales</h3>
-<p>Modifica el archivo <code>primary/init.sql</code> para agregar tus datos iniciales.</p>
+<h3>Scripts SQL</h3>
+<p>Agrega o modifica scripts en la carpeta <code>primary/script_init</code> para personalizar los esquemas, tablas y datos iniciales.</p>
 
 <h3>Agregar Más Réplicas</h3>
 <p>Edita el archivo <code>docker-compose.yml</code> y copia la configuración del servicio <code>replica</code>. Cambia el puerto y el volumen para evitar conflictos.</p>
