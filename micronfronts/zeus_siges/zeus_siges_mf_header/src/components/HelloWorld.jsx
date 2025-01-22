@@ -1,7 +1,11 @@
 import React from "react";
+import HelloWorldController from "../interfaces/controllers/HelloWorldController";
 
 const HelloWorld = () => {
-  return <h1>¡Hola desde el Microfrontend!</h1>;
+  const helloWorldController = new HelloWorldController();
+  const message = helloWorldController.getMessage();
+
+  return <h1>{message}</h1>;
 };
 
 export default HelloWorld;
