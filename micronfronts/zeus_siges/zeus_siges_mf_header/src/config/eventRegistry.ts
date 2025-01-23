@@ -1,0 +1,5 @@
+export const EVENTOS_MF = Object.freeze({
+  LOAD: "MF.LOAD",
+  MENSAJE_RECIBIDO: "MF.MENSAJE_RECIBIDO",
+  ERROR_SERVICIO: "MF.ERROR_SERVICIO",
+});

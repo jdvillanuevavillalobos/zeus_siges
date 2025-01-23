@@ -1,2 +1,58 @@
+# Node.js
+node_modules/
+dist/
+build/
+.cache/
+.tmp/
+coverage/
 
-.codegpt
+# Editor y sistema operativo
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Archivos de configuración locales
+#.env
+#.env.local
+#.env.development
+#.env.test
+#.env.production
+
+# Webpack / Babel / TypeScript
+.cache/
+out/
+.eslintcache
+*.tsbuildinfo
+
+# Archivos de compilación
+/public/*.hot-update.js
+/public/*.hot-update.json
+/public/remoteEntry.js
+/public/remoteEntry.json
+
+# React y Testing
+.jest/
+cypress/screenshots/
+cypress/videos/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# IDEs y editores de código
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Otros archivos
+*.bak
+*.orig
