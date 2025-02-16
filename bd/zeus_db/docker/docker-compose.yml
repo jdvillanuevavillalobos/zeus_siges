@@ -1,0 +1,3 @@
+networks:
+  zeus_network:
+    driver: bridge

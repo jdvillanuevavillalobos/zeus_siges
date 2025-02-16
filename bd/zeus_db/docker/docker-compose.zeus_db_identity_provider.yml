@@ -1,0 +1,28 @@
+services:
+  postgres_zeus_db_identity_provider:
+    build:
+      context: ./zeus_db_identity_provider
+      dockerfile: Dockerfile
+    container_name: postgres_zeus_db_identity_provider
+    restart: always
+    environment:
+      POSTGRES_DB: zeus_db_identity_provider
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_zeus_db_identity_provider_data:/var/lib/postgresql/data
+      - ./zeus_db_identity_provider/init-scripts/postgresql:/docker-entrypoint-initdb.d
+      - ./zeus_db_identity_provider/postgresql.conf:/etc/postgresql/postgresql.conf  # Configuración personalizada
+      - ./zeus_db_identity_provider/pg_hba.conf:/etc/postgresql/pg_hba.conf  # Configuración de autenticación
+    command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]  # Forzar uso del archivo
+    networks:
+      - zeus_network
+
+volumes:
+  postgres_zeus_db_identity_provider_data:
+
+networks:
+  zeus_network:
+    driver: bridge
