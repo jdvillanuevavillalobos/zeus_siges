@@ -5,23 +5,50 @@ services:
       dockerfile: Dockerfile
     container_name: postgres_zeus_db_identity_provider
     restart: always
+    env_file:
+      - ../config/.env.${APP_ENV}  # 🔥 Ahora buscará el archivo en `zeus_db/config/`
     environment:
-      POSTGRES_DB: zeus_db_identity_provider
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin123
+      POSTGRES_DB: "${DB_NAME}"
+      POSTGRES_USER: "${DB_USER}"
+      POSTGRES_PASSWORD: "${DB_PASSWORD}"
     ports:
-      - "5433:5432"
+      - "${DB_PORT}:5432"
     volumes:
       - postgres_zeus_db_identity_provider_data:/var/lib/postgresql/data
       - ./zeus_db_identity_provider/init-scripts/postgresql:/docker-entrypoint-initdb.d
-      - ./zeus_db_identity_provider/postgresql.conf:/etc/postgresql/postgresql.conf  # Configuración personalizada
-      - ./zeus_db_identity_provider/pg_hba.conf:/etc/postgresql/pg_hba.conf  # Configuración de autenticación
-    command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]  # Forzar uso del archivo
+      - ./zeus_db_identity_provider/postgresql.conf:/etc/postgresql/postgresql.conf
+      - ./zeus_db_identity_provider/pg_hba.conf:/etc/postgresql/pg_hba.conf
+    command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
+    networks:
+      - zeus_network
+
+  postgres_zeus_db_identity_provider_replica:
+    image: postgres:15
+    container_name: postgres_zeus_db_identity_provider_replica
+    restart: always
+    env_file:
+      - ../config/.env.${APP_ENV}  # 🔥 Ahora buscará el archivo en `zeus_db/config/`
+    environment:
+      REPLICATION_USER: "${REPLICATION_USER}"
+      REPLICATION_PASSWORD: "${REPLICATION_PASSWORD}"
+      PRIMARY_IP: "${PRIMARY_IP}"
+      REPLICATION_SLOT: "${REPLICATION_SLOT}"
+    ports:
+      - "${DB_REPLICA_PORT}:5432"
+    volumes:
+      - postgres_zeus_db_identity_provider_replica_data:/var/lib/postgresql/data
+      - ./zeus_db_identity_provider/replica/postgresql.conf:/etc/postgresql/postgresql.conf
+      - ./zeus_db_identity_provider/replica/pg_hba.conf:/etc/postgresql/pg_hba.conf
+      - ./zeus_db_identity_provider/replica/setup_replica.sh:/docker-entrypoint-initdb.d/setup_replica.sh
+    command: ["/bin/bash", "/docker-entrypoint-initdb.d/setup_replica.sh"]
+    depends_on:
+      - postgres_zeus_db_identity_provider
     networks:
       - zeus_network
 
 volumes:
   postgres_zeus_db_identity_provider_data:
+  postgres_zeus_db_identity_provider_replica_data:
 
 networks:
   zeus_network:

@@ -1,21 +1,31 @@
 -- ==========================================================
 -- 📌 Creación de la tabla `user` en el esquema `idp_identity`
 -- ==========================================================
+-- 📌 Asegurar que la extensión pgcrypto esté instalada para generar aleatoriedad
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
--- Crear la extensión necesaria para generar ULIDs si no existe
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
--- Crear función para generar ULID en PostgreSQL
+-- 📌 Crear función para generar ULID
 CREATE OR REPLACE FUNCTION idp_identity.generate_ulid()
 RETURNS VARCHAR(26) AS $$
 DECLARE
-    ulid VARCHAR(26);
+    timestamp_part TEXT;
+    random_part TEXT;
+    ulid TEXT;
 BEGIN
-    -- Generar un UUID v4 y convertirlo a Base32 (simulando ULID)
-    SELECT encode(uuid_send(uuid_generate_v4()), 'base32') INTO ulid;
-    RETURN ulid;
+    -- 🕒 Obtener el timestamp en milisegundos
+    timestamp_part := lpad(to_hex((EXTRACT(EPOCH FROM clock_timestamp()) * 1000)::bigint), 12, '0');
+
+    -- 🎲 Generar la parte aleatoria de 10 bytes y convertir a hex
+    random_part := encode(gen_random_bytes(10), 'hex');
+
+    -- 🔄 Concatenar timestamp + random para formar ULID
+    ulid := upper(timestamp_part || random_part);
+
+    -- 📏 Asegurar que ULID tenga exactamente 26 caracteres (Base32 ULID usa 26)
+    RETURN LEFT(ulid, 26);
 END;
 $$ LANGUAGE plpgsql;
+
 
 -- Crear tabla de usuarios en el esquema `idp_identity`
 CREATE TABLE IF NOT EXISTS idp_identity.user (

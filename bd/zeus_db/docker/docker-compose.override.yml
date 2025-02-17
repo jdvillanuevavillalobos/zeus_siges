@@ -1,0 +1,8 @@
+services:
+  postgres_zeus_db_identity_provider:
+    env_file:
+      - ./config/.env.dev  # Carga automáticamente .env.dev por defecto
+
+  postgres_zeus_db_identity_provider_replica:
+    env_file:
+      - ./config/.env.dev  # Carga automáticamente .env.dev por defecto
