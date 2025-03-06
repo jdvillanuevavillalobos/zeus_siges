@@ -133,6 +133,38 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- 📌 Tabla de aplicaciones
+CREATE TABLE IF NOT EXISTS idp_application.application (
+    application_id VARCHAR(26) PRIMARY KEY DEFAULT idp_application.generate_ulid(), -- Identificador único de la aplicación (ULID)
+
+    -- 📌 Auditoría
+    record_status VARCHAR(3) DEFAULT 'ACT' NOT NULL CHECK (record_status IN ('ACT', 'DEL')), -- Estado del registro (ACT=Activo, DEL=Eliminado)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL, -- Fecha de creación del registro
+    created_by VARCHAR(128) NOT NULL, -- Usuario que creó el registro
+    updated_at TIMESTAMP, -- Última fecha de actualización
+    updated_by VARCHAR(128), -- Usuario que realizó la última modificación
+    deleted_at TIMESTAMP, -- Fecha de eliminación del registro (soft delete)
+    deleted_by VARCHAR(128), -- Usuario que eliminó el registro
+    transaction_id VARCHAR(64), -- ID de la transacción asociada (para trazabilidad)
+
+    -- 📌 Datos de la aplicación
+    name VARCHAR(255) NOT NULL, -- Nombre de la aplicación
+    description TEXT, -- Descripción opcional de la aplicación
+    client_id VARCHAR(32) UNIQUE NOT NULL, -- Identificador único para OAuth2
+    client_secret TEXT NOT NULL, -- Secreto de autenticación (⚠ Almacenado cifrado)
+    redirect_uri TEXT NOT NULL, -- URI de redirección permitida para OAuth2
+    token_lifetime INT DEFAULT 3600, -- Tiempo de vida del token en segundos (1 hora por defecto)
+    refresh_token_lifetime INT DEFAULT 604800, -- Tiempo de vida del refresh token (7 días por defecto)
+    allow_refresh_token BOOLEAN DEFAULT TRUE, -- Indica si la app puede usar refresh tokens
+    status SMALLINT DEFAULT 1 CHECK (status IN (0,1)) -- Indica si la aplicación está activa (1=Sí, 0=No)
+);
+
+-- 📌 Restricciones y optimización de índices
+ALTER TABLE idp_application.application ADD CONSTRAINT uq_application_name UNIQUE (name); -- Restricción de unicidad para el nombre de la aplicación
+ALTER TABLE idp_application.application ADD CONSTRAINT uq_application_client_id UNIQUE (client_id); -- Restricción de unicidad para client_id
+CREATE INDEX idx_application_status ON idp_application.application(record_status, status); -- Índice para búsquedas rápidas por estado y actividad de la aplicación
+
+
 -- 📌 Tabla de usuarios
 CREATE TABLE IF NOT EXISTS idp_identity.user (
     user_id VARCHAR(26) PRIMARY KEY DEFAULT idp_identity.generate_ulid(), -- Identificador único del usuario (ULID)
